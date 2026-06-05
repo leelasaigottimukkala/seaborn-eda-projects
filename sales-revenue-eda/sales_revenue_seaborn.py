@@ -1,49 +1,84 @@
-import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+# Load Dataset
+df = pd.read_csv("/Users/leelasaigottimukkala/Downloads/SampleSuperstore.csv", encoding='latin1')
 
-data={"Month":        ["Jan","Feb","Mar","Apr","May","Jun"],
-"Electronics":  [12000,15000,17000,16000,18000,20000],
-"Clothing":     [8000,9000,8500,9500,10000,11000],
-"Groceries":    [6000,6500,7000,7200,7500,8000],
-"Region":       ["North","South","East","West","North","South"]
-}
-df=pd.DataFrame(data)
-df["total_revenue"]=df[["Electronics","Clothing","Groceries"]].sum(axis=1)
-overall_revenue=df["total_revenue"].sum()
+# Display first 5 rows
+print(df.head())
 
-sales_df=df.melt(
-    id_vars=["Month","Region"],
-    value_vars=["Electronics","Clothing","Groceries"],
-    var_name="Categories",
-    value_name="Revenue"
+# Dataset Information
+print(df.info())
+
+# Check missing values
+print(df.isnull().sum())
+
+# Remove duplicate rows
+df = df.drop_duplicates()
+
+# Basic statistics
+print(df.describe())
+
+# Total Sales
+total_sales = df['Sales'].sum()
+print("Total Sales:", total_sales)
+
+# Total Profit
+total_profit = df['Profit'].sum()
+print("Total Profit:", total_profit)
+
+# Sales by Category
+category_sales = df.groupby('Category')['Sales'].sum()
+
+plt.figure(figsize=(8,5))
+category_sales.plot(kind='bar')
+plt.title("Sales by Category")
+plt.xlabel("Category")
+plt.ylabel("Sales")
+plt.show()
+
+# Sales by Region
+region_sales = df.groupby('Region')['Sales'].sum()
+
+plt.figure(figsize=(8,5))
+region_sales.plot(kind='bar')
+plt.title("Sales by Region")
+plt.xlabel("Region")
+plt.ylabel("Sales")
+plt.show()
+
+# Top 10 Products
+top_products = (
+    df.groupby('Product Name')['Sales']
+      .sum()
+      .sort_values(ascending=False)
+      .head(10)
 )
 
-plt.figure(figsize=(12,8))
-sns.set_style("whitegrid")
-plt.subplot(2,2,1)
-sns.lineplot(data=df,x="Month",y="total_revenue",color="red")
-plt.title("Total Monthly Revenue Trend")
+plt.figure(figsize=(10,6))
+top_products.plot(kind='bar')
+plt.title("Top 10 Products by Sales")
+plt.xlabel("Product")
+plt.ylabel("Sales")
+plt.show()
 
+# Sales Distribution
+plt.figure(figsize=(8,5))
+sns.histplot(df['Sales'], bins=30)
+plt.title("Sales Distribution")
+plt.show()
 
-plt.subplot(2,2,2)
-sns.barplot(data=sales_df,x="Categories",y="Revenue",palette="Set2")
-plt.title("Average Revenue by Category")
+# Category Comparison
+plt.figure(figsize=(8,5))
+sns.boxplot(x='Category', y='Sales', data=df)
+plt.title("Category-wise Sales Comparison")
+plt.show()
 
+# Correlation Heatmap
+numeric_cols = df[['Sales','Profit','Quantity','Discount']]
 
-
-plt.subplot(2,2,3)
-sns.boxplot(data=sales_df,x="Categories",y="Revenue",hue="Region")
-plt.title("Revenue Distribution by Category and Region")
-
-
-
-plt.subplot(2,2,4)
-sns.lineplot(data=sales_df,x="Month",y="Revenue",hue="Categories",marker="o")
-plt.title("Category-wise Revenue Trend")
-
-
-plt.tight_layout()
+plt.figure(figsize=(6,4))
+sns.heatmap(numeric_cols.corr(), annot=True)
+plt.title("Correlation Heatmap")
 plt.show()
